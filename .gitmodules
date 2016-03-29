@@ -1,0 +1,3 @@
+[submodule "lib/LTL-Tableaux"]
+	path = lib/LTL-Tableaux
+	url = https://github.com/nricci/LTL-Tableaux.git
