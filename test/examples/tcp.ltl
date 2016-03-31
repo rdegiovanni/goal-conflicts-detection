@@ -1,0 +1,11 @@
+--Consider the TCP network protocol that provides reliable in-order delivery of packets in packet based data transmis- sion. 
+--For simplification, we assume the protocol can send one package at a time, i.e., it waits for the ACK to send the next package. 
+Goals: 
+--Achieve[ReliableChannel]: Packages are regularly delivered. 
+G(F(delivered));
+
+--Achieve [DeliveredWhenSend]: Every sent package eventually is delivered. 
+G(send -> F(delivered));
+
+--Achieve[WaitACKbeforeSend]: Wait for the ACK signal, before sending a new package.
+G(delivered -> (!send U ack));

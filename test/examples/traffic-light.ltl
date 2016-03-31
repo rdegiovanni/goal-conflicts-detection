@@ -1,0 +1,12 @@
+--Light can be any of three colors: green, yellow, read
+Goals:
+--Liveness: traffic light is green infinitely often
+G(F(green)) ;
+
+--Chronological ordering: once red, the light cannot become green immediately
+--AG (red -> EX (!green));
+Domain:
+--More detailed: once red, the light always becomes green eventually after being yellow for some time
+G(red -> F green) ;
+G(red -> ( (!green) U yellow)) 
+--AG(red -> (A red U (yellow && (A yellow U green))))

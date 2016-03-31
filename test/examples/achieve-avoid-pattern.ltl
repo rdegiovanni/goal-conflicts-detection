@@ -1,0 +1,7 @@
+Goals:
+G (p -> (F q));
+
+G (r -> G(!s))
+
+Domain:
+G (q -> s)

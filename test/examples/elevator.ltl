@@ -1,0 +1,10 @@
+--Between the time an elevator is called at a floor and the time it opens its doors at that floor, the elevator can arrive at that floor at most twice
+Goals:
+G(call -> F(open)) ;
+
+--G (call -> X(!atfloor W (atfloor && X(open || (!atfloor W (atfloor && X(open)))))))
+
+Domain:
+G ( X(open) -> atfloor)
+
+

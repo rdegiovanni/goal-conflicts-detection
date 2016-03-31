@@ -1,0 +1,6 @@
+Goals:
+G (p -> (F q));
+
+G (q -> p) 
+
+--EF (p && (E (!q) U (AG !p)))
