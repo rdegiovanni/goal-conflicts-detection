@@ -45,14 +45,14 @@ split_DOM_and_GOALS s = let splitted = L.lines s ;
 								let dom_str = if (dom_i==0) then "" else (foldl (++) "" (L.drop dom_i (L.take (goal_i -1) splitted))) ;
 									goal_str = if (goal_i==0) then "" else foldl (++) "" (L.drop goal_i splitted)
 								in
-									(trace ("dom_i = " ++ show dom_i))
-									(trace ("goal_i = " ++ show goal_i))
+									--(trace ("dom_i = " ++ show dom_i))
+									--(trace ("goal_i = " ++ show goal_i))
 									(dom_str,goal_str)
 							else
 								let dom_str = if (dom_i==0) then "" else (foldl (++) "" (L.drop dom_i splitted)) ;
 									goal_str = if (goal_i==0) then "" else (foldl (++) ""  (L.drop goal_i (L.take (dom_i -1) splitted)))
 								in
-									(trace ("dom_i = " ++ show dom_i))
-									(trace ("goal_i = " ++ show goal_i))
+									--(trace ("dom_i = " ++ show dom_i))
+									--(trace ("goal_i = " ++ show goal_i))
 									(dom_str,goal_str)
 

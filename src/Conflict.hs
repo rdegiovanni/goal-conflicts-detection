@@ -119,7 +119,7 @@ compute_response_conflicts t pr =
 									compute_liveness_conditions t (live_frontier g) S.empty [] (root t) ;
 		response_forms = \(If p q) -> make_response_conflicts p q (make_or $ S.toList $ (response_conflict q)) 
 	in
-		(trace ("response evs: " ++ show response))
+		--(trace ("response evs: " ++ show response))
 		S.map response_forms response
 
 
@@ -175,7 +175,9 @@ compute_liveness_conditions t evNodes vs lp c =
 		--vs' increment visited nodes 
 		vs' = S.union vs (S.singleton c) ;
 		--compute potential conflicts: path conditions to reach inconsistent nodes.
-		local_conflict = condition_to_frontier t lp (S.intersection states evNodes)
+		conflict_states = (S.intersection states evNodes) ;
+
+		local_conflict = live_condition_to_frontier t lp (states S.\\ conflict_states) conflict_states
 	in
 		--no more PreStates to be expanded
 		if (vs' == S.filter isPreState (nodes t)) then
@@ -204,23 +206,47 @@ compute_liveness_conditions t evNodes vs lp c =
 				if (S.null local_conflict) then
 					S.unions $ (S.toList next_level_conflicts)
 				else
-						S.unions $ [local_conflict] ++ (S.toList next_level_conflicts)
+						S.unions $ (S.toList next_level_conflicts) ++ [local_conflict]
 
 
 condition_to_frontier :: Tableaux -> [Formula] -> Set Node -> Set Formula
 condition_to_frontier t lp conflict_nodes = 
-	let incons_paths = 	if S.null conflict_nodes then 
-							S.singleton LTL.FalseConst
-						else
-							S.map (branch_condition t) conflict_nodes ;
-		incons_form = LTL.negate $ make_or (S.toList incons_paths) ;
-		path_form = buildPathFormula (lp ++ [incons_form])
-	in
-		if path_form == LTL.FalseConst then
-			S.empty
-		else
-			S.singleton $ path_form
+	--let incons_paths = 	if S.null conflict_nodes then 
+	--						S.singleton LTL.FalseConst
+	--					else
+	--						S.map (branch_condition t) conflict_nodes ;
+	--if S.null conflict_nodes then 
+	--	S.empty
+	--else
+		let incons_paths = S.map (branch_condition t) conflict_nodes ;
+			incons_form = LTL.negate $ make_or (S.toList incons_paths) ;
+			path_form = buildPathFormula (lp ++ [incons_form])
+		in
+			if path_form == LTL.FalseConst then
+				S.empty
+			else
+				S.singleton $ path_form
 													
+
+live_condition_to_frontier :: Tableaux -> [Formula] -> Set Node -> Set Node -> Set Formula
+live_condition_to_frontier t lp consistent_nodes conflict_nodes = 
+	--let incons_paths = 	if S.null conflict_nodes then 
+	--						S.singleton LTL.FalseConst
+	--					else
+	--						S.map (branch_condition t) conflict_nodes ;
+	--if S.null conflict_nodes then 
+	--	S.empty
+	--else
+		let cons_paths = S.map (branch_condition t) consistent_nodes ;
+			cons_form = if (S.null cons_paths) then LTL.TrueConst else make_or (S.toList cons_paths) ;
+			incons_paths = S.map (branch_condition t) conflict_nodes ;
+			incons_form = LTL.negate $ make_or (S.toList incons_paths) ;
+			path_form = buildPathFormula (lp ++ [And cons_form incons_form])
+		in
+			if path_form == LTL.FalseConst then
+				S.empty
+			else
+				S.singleton $ path_form
 
 --branch condition in one step
 branch_condition :: Tableaux -> Node -> Formula
@@ -252,7 +278,7 @@ conflictsToString [] = []
 conflictsToString (x:xs) = (show x):(conflictsToString xs)
 
 print_Conflicts_info = \str -> \bcs -> do {
-	putStrLn ("#"++show str ++"-conflicts= " ++ show (S.size bcs) );
+	putStrLn ("#"++ str ++"-conflicts= " ++ show (S.size bcs) );
 	bcs_str <- return $ conflictsToString (S.toList bcs);
 	mapM_ putStrLn bcs_str
 }

@@ -13,7 +13,7 @@ isSAT spec = let t = do_tableaux $ make_tableaux spec ;
 
 
 isPreState :: Node -> Bool
-isPreState (OrNode _) = True
+isPreState (PreState _) = True
 isPreState _ = False
 
 isTrue :: Formula -> Bool
@@ -83,7 +83,7 @@ make_and (x:y:xs) = let f = make_and xs in
 							And x (And y f)
 
 make_or :: [Formula] -> Formula
-make_or [] = TrueConst
+make_or [] = FalseConst
 make_or [x] = x
 make_or [x,y] = Or x y
 make_or (x:y:xs) = let f = make_or xs in
