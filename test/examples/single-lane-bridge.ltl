@@ -1,0 +1,8 @@
+Goals:
+
+G(blue_req -> F (blue_enter));
+G(red_req -> F (red_enter));
+
+Domain:
+G(red_enter -> (!blue_enter U red_exit));
+G(blue_enter -> (!red_enter U blue_exit));

@@ -1,0 +1,9 @@
+--Bounded Retransmission protocol
+Goals:
+
+G( req -> X (!req W (sok || snok || sdnk)));
+G( rfst -> (!req W (rok || rnok)));
+G( req -> (!sok W rok));
+G( req -> (!rnok W (snok || sdnk) ));
+
+--G ( req -> F sok))
