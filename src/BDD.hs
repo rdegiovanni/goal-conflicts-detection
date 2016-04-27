@@ -31,11 +31,11 @@ robdd_to_formula c (ROBDD    Zero root Zero _ _) = LTL.FalseConst 	--contradicti
 robdd_to_formula c (ROBDD    One root One _ _) = LTL.TrueConst 	--tautology
 robdd_to_formula c (ROBDD    One root Zero _ _) = LTL.negate root
 robdd_to_formula c (ROBDD    Zero root One _ _) = root
-robdd_to_formula c (ROBDD    l root Zero _ _) = And (LTL.negate root) (robdd_to_formula c l)
-robdd_to_formula c (ROBDD    Zero root r _ _) = And root (robdd_to_formula c r)
-robdd_to_formula c (ROBDD    l root One _ _) = Or root (robdd_to_formula c l) 				-- a&(!a|b)<->a|b
-robdd_to_formula c (ROBDD    One root r _ _) = Or (LTL.negate root) (robdd_to_formula c r)	-- !a&(a|b)<->!a|b
-robdd_to_formula c (ROBDD 	 l root r _ _) = Or (And (LTL.negate root) (robdd_to_formula c l)) (And root (robdd_to_formula c r))
+robdd_to_formula c (ROBDD    l root Zero _ _) = LTL.And (LTL.negate root) (robdd_to_formula c l)
+robdd_to_formula c (ROBDD    Zero root r _ _) = LTL.And root (robdd_to_formula c r)
+robdd_to_formula c (ROBDD    l root One _ _) = LTL.Or root (robdd_to_formula c l) 				-- a&(!a|b)<->a|b
+robdd_to_formula c (ROBDD    One root r _ _) = LTL.Or (LTL.negate root) (robdd_to_formula c r)	-- !a&(a|b)<->!a|b
+robdd_to_formula c (ROBDD 	 l root r _ _) = LTL.Or (LTL.And (LTL.negate root) (robdd_to_formula c l)) (LTL.And root (robdd_to_formula c r))
 robdd_to_formula c (ROBDDRef l root r _ _) = robdd_to_formula c $ lookupUnsafe (ROBDDId l root r) c
 
 

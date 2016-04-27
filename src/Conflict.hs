@@ -241,7 +241,8 @@ live_condition_to_frontier t lp consistent_nodes conflict_nodes =
 			cons_form = if (S.null cons_paths) then LTL.TrueConst else make_or (S.toList cons_paths) ;
 			incons_paths = S.map (branch_condition t) conflict_nodes ;
 			incons_form = LTL.negate $ make_or (S.toList incons_paths) ;
-			path_form = buildPathFormula (lp ++ [And cons_form incons_form])
+			form = if (not$S.null conflict_nodes) then incons_form else cons_form ;
+			path_form = buildPathFormula (lp ++ [form])
 		in
 			if path_form == LTL.FalseConst then
 				S.empty
