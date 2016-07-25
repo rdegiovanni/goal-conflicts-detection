@@ -22,6 +22,8 @@ import Conflict
 
 import Data.Time.Clock 
 
+import Control.Monad
+
 main = do {
 	args <- getArgs;
 	infile <- return $ args!!0 ;
@@ -96,12 +98,15 @@ run_conflicts_detection_fast = \outfile -> \dom -> \goals -> \t2 -> do {
 			putStrLn ("No WEAK conflict detected.");
 	else
 		do {
-			removeDirectoryRecursive outfile ;
+			dirExists <- doesDirectoryExist outfile ;
+			when dirExists	(removeDirectoryRecursive outfile) ;
+
           	createDirectoryIfMissing True outfile ;
 			checks_str <- return $ S.map (allchecks dom goals) potential_conflict_set ;
 			writeConflict (outfile++"/C") (S.size checks_str) (S.toList checks_str)
 		}
 }
+
 
 print_Tableaux_info = \t -> do {
 	size <- return $ S.size (nodes t);
