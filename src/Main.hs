@@ -9,7 +9,7 @@ import Tableaux
 import qualified Data.Set as S
 import Data.Set (Set)
 import qualified SetAux as S
-
+import Data.List as L
 import qualified Relation as R
 import Relation (Relation)
 
@@ -23,16 +23,25 @@ import Conflict
 import Data.Time.Clock 
 
 import Control.Monad
+import Data.Char as C
 
 main = do {
 	args <- getArgs;
 	infile <- return $ args!!0 ;
 	outfile <- return $ args!!1 ;
-	run_tableaux infile outfile
+	if length args /= 3 then
+		run_tableaux infile outfile True
+	else do{
+		flag_useAalta <- return $ args!!2 ;
+		str <- return $ (L.map C.toUpper) flag_useAalta ;
+		useAalta <- return $ L.isPrefixOf "TRUE" str ;
+		run_tableaux infile outfile useAalta;
+	}
+
 }
 
 
-run_tableaux = \infile -> \outfile -> do {
+run_tableaux = \infile -> \outfile -> \b -> do {
 	start_time <- getCurrentTime;
 	str <- readFile infile;
 	(dom,goals) <- return $ parseDOMandGOALS str;
@@ -55,7 +64,7 @@ run_tableaux = \infile -> \outfile -> do {
 
 	if not $ S.null $ nodes t2 then 
 		do 	writeFile "output/tableaux.dot" (tab2dot t2)
-			run_conflicts_detection_fast outfile dom goals t2 
+			run_conflicts_detection_fast outfile dom goals t2 b
 	else
 		putStrLn ("STRONG conflict detected. The specification is inconsistent.");
 
@@ -86,7 +95,7 @@ run_conflicts_detection = \outfile -> \dom -> \goals -> \t2 -> do {
 		}
 }
 
-run_conflicts_detection_fast = \outfile -> \dom -> \goals -> \t2 -> do {
+run_conflicts_detection_fast = \outfile -> \dom -> \goals -> \t2 -> \b -> do {
 	conflict_time <- getCurrentTime;
 
 	spec <- return $ S.union dom goals;
@@ -102,7 +111,7 @@ run_conflicts_detection_fast = \outfile -> \dom -> \goals -> \t2 -> do {
 			when dirExists	(removeDirectoryRecursive outfile) ;
 
           	createDirectoryIfMissing True outfile ;
-			checks_str <- return $ S.map (allchecks dom goals) potential_conflict_set ;
+			checks_str <- return $ S.map (\c -> allchecks dom goals c b) potential_conflict_set ;
 			writeConflict (outfile++"/C") (S.size checks_str) (S.toList checks_str)
 		}
 }
@@ -131,13 +140,13 @@ writeConflict = \fname -> \index -> \str -> do {
 		}
 }
 
-allchecks :: Set Formula -> Set Formula -> Formula  -> String
-allchecks dom goals c = let spec = S.union dom goals;
+allchecks :: Set Formula -> Set Formula -> Formula  -> Bool -> String
+allchecks dom goals c b = let spec = S.union dom goals;
 							combs = S.map (\n -> S.delete n spec) goals ;
 							all_combs = S.map (\comb -> (comb S.<+ c)) combs ;
-							spec_str = translate (spec S.<+ c) ;
-							checks_str = S.map translate all_combs ;
-							c_str = translateForm c
+							spec_str = translate (spec S.<+ c) b ;
+							checks_str = S.map (\f -> translate f b) all_combs ;
+							c_str = translate (S.singleton c) b
 						in 
 							listToString(c_str:(spec_str:(S.toList checks_str)))
 
@@ -146,11 +155,11 @@ allchecks dom goals c = let spec = S.union dom goals;
 
 
 
-translate :: Set Formula -> String
-translate spec = 	if (S.null spec) then
+translate :: Set Formula -> Bool -> String
+translate spec b= 	if (S.null spec) then
 						"True"
 					else
-						makeFormula $ S.toList (S.map translateForm spec)
+						makeFormula $ S.toList (S.map (if b then translate_to_aalta else translate_to_pltl) spec)
 
 
 makeFormula :: [String] -> String
@@ -158,21 +167,38 @@ makeFormula [] = ""
 makeFormula [x] = x
 makeFormula (x:(y:xs)) = x ++ " & " ++ (makeFormula (y:xs))
 
-translateForm :: Formula -> String
-translateForm (And p q) =	"("++translateForm p ++ " & " ++ translateForm q ++")"
-translateForm (Or p q) 	=	"("++translateForm p ++ " | " ++ translateForm q ++")"
-translateForm (If p q)	=	"("++translateForm p ++ " -> " ++ translateForm q ++")"
-translateForm (Iff p q) =	"("++translateForm p ++ " <=> " ++ translateForm q ++")"
---translateForm (Xor p q) =	"("++translateForm p ++ " <=> " ++ translateForm q ++")"
-translateForm (Not p)	=	"~" ++ translateForm p
-translateForm (U p q) 	=	"(" ++ translateForm p ++ " U " ++ translateForm q ++ ")"
-translateForm (W p q) 	=	"( " ++ translateForm (G p) ++ " | " ++ translateForm (U p q) ++ ")"
-translateForm (X p) 	=	"X (" ++ translateForm p ++ ")"
-translateForm (G p) 	=	"G (" ++ translateForm p ++ ")"
-translateForm (F p)		=	"F (" ++ translateForm p ++ ")"
-translateForm (Prop s) 	= 	s	
-translateForm TrueConst = 	"True"
-translateForm FalseConst= 	"False"
+
+translate_to_pltl :: Formula -> String
+translate_to_pltl (And p q) =	"("++translate_to_pltl p ++ " & " ++ translate_to_pltl q ++")"
+translate_to_pltl (Or p q) 	=	"("++translate_to_pltl p ++ " | " ++ translate_to_pltl q ++")"
+translate_to_pltl (If p q)	=	"("++translate_to_pltl p ++ " => " ++ translate_to_pltl q ++")"
+translate_to_pltl (Iff p q) =	"("++translate_to_pltl p ++ " <=> " ++ translate_to_pltl q ++")"
+--translate_to_pltl (Xor p q) =	"("++translate_to_pltl p ++ " <=> " ++ translate_to_pltl q ++")"
+translate_to_pltl (Not p)	=	"~" ++ translate_to_pltl p
+translate_to_pltl (U p q) 	=	"(" ++ translate_to_pltl p ++ " U " ++ translate_to_pltl q ++ ")"
+translate_to_pltl (W p q) 	=	"( " ++ translate_to_pltl (G p) ++ " | " ++ translate_to_pltl (U p q) ++ ")"
+translate_to_pltl (X p) 	=	"X (" ++ translate_to_pltl p ++ ")"
+translate_to_pltl (G p) 	=	"G (" ++ translate_to_pltl p ++ ")"
+translate_to_pltl (F p)		=	"F (" ++ translate_to_pltl p ++ ")"
+translate_to_pltl (Prop s) 	= 	s	
+translate_to_pltl TrueConst = 	"True"
+translate_to_pltl FalseConst= 	"False"
+
+translate_to_aalta :: Formula -> String
+translate_to_aalta (And p q) =	"("++translate_to_aalta p ++ " & " ++ translate_to_aalta q ++")"
+translate_to_aalta (Or p q) 	=	"("++translate_to_aalta p ++ " | " ++ translate_to_aalta q ++")"
+translate_to_aalta (If p q)	=	"("++translate_to_aalta p ++ " -> " ++ translate_to_aalta q ++")"
+translate_to_aalta (Iff p q) =	"("++translate_to_aalta p ++ " <-> " ++ translate_to_aalta q ++")"
+--translate_to_aalta (Xor p q) =	"("++translate_to_aalta p ++ " <=> " ++ translate_to_aalta q ++")"
+translate_to_aalta (Not p)	=	"~" ++ translate_to_aalta p
+translate_to_aalta (U p q) 	=	"(" ++ translate_to_aalta p ++ " U " ++ translate_to_aalta q ++ ")"
+translate_to_aalta (W p q) 	=	"( " ++ translate_to_aalta (G p) ++ " | " ++ translate_to_aalta (U p q) ++ ")"
+translate_to_aalta (X p) 	=	"X (" ++ translate_to_aalta p ++ ")"
+translate_to_aalta (G p) 	=	"G (" ++ translate_to_aalta p ++ ")"
+translate_to_aalta (F p)		=	"F (" ++ translate_to_aalta p ++ ")"
+translate_to_aalta (Prop s) 	= 	s	
+translate_to_aalta TrueConst = 	"True"
+translate_to_aalta FalseConst= 	"False"
 
 
 listToString :: [String] -> String
