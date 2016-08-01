@@ -34,7 +34,7 @@ The tool computes a set of conflicts for goals specified in Linear-Time Temporal
 
     	Linux : `./run-linux.sh <path-to-LTL-file> <output-path>`
 
-  		For instance, ./run-mac.sh case-studies/tcp.ltl conflicts/tcp 
+  		For instance, ./run-mac.sh test/examples/tcp.ltl conflicts/tcp 
 
         You can find some examples in the folder tests/
         
