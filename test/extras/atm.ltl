@@ -1,0 +1,13 @@
+-- Taken from Synthesis of Behavioral Models from
+-- Scenarios, in Proc. of IEEE Transactions on Software Engineering, Vol. 29, pp. 99-115, 2003.
+
+Goals:
+--Correct Extraction.
+G(passok && !locked -> money) ;
+
+--Lock the account when the user introduce a bad password.
+G(!passok -> ((!money) U locked));
+
+Domain:
+--The user is always allowed to unlock de account.
+G(locked -> F (!locked));

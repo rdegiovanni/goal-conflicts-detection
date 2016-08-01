@@ -1,0 +1,16 @@
+--Consider a traffic controller on a north-south highway with a road off to the east.
+--The east road has a sensor that goes to true when a car crosses it.
+--To reason about them, we name the sensors e (east).
+--We also name the output signals at each end of the intersection ngo (cars from the north can go), sgo (cars from the south can go), ego (cars from the east can go).
+
+Goals:
+--If cars from the east have a go-signal, then no other car can have a go-signal
+G (ego -> ((!ngo && !sgo) U !e));
+
+--If the east sensor registers a car, then the car will be able to go through the intersection
+G (e -> F(ego));
+
+--Efficiency
+--Since north and south bound cars can safely pass by each other,
+-- we can that infinitely often they are able to cross.
+GF(ngo && sgo);

@@ -1,0 +1,15 @@
+--Taken from Feature specification and automated conflict detection. 
+--Amy P. Felty and Kedar S. Namjoshi.
+--ACM TOSEM, 12(1):3–27, 2003.
+
+Goals:
+G (calling  -> (calling  U (connected || disconnected)) );
+
+G (calling  ->  (calling  U (forwarded || disconnected)) );
+
+Domain:
+G (!connected || !forwarded);
+
+G (!connected || !calling);
+
+G (!calling || !forwarded);

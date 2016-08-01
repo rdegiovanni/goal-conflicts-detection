@@ -1,0 +1,11 @@
+--Taken from A comedy of errors: the london ambulance service case study. 
+--A. Finkelstein and J. Dowell.
+--In Proc. of 8th Intl. Work. on Software Specification and Design, pp. 2–4, 1996.
+
+Goals:
+G(accident -> medicalemergency);
+G(call && medicalemergency && nearestambulanceavailable -> dispatchambulance);
+G(call && !nearestambulanceavailable -> !dispatchambulance);
+G(!hascrew -> !nearestambulanceavailable);
+G(!nearestambulanceavailable -> !nocallissue);
+

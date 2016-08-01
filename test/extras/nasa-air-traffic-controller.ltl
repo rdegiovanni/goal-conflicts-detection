@@ -1,0 +1,13 @@
+Goals:
+--Safety: Every conflict is addressed immediately (i.e in one time step)
+G(!tsafeclear -> X(tsafecommand));
+
+-- Safety: The system will never issue conflicting commands
+G(!arcommand || !tsafecommand);
+
+--Liveness: All conflicts are eventually resolved
+G(!tsafeclear -> F(tsafeclear)) ;
+-- Liveness: All controller requests are eventually addressed
+G(controllerrequest -> F(!controllerrequest));
+--Liveness: All aircraft requests are eventually addressed
+G(aircraftrequest -> F(!aircraftrequest))
